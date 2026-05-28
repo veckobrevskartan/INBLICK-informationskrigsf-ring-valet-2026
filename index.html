@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informationskrigföring & Påverkansoperationer — Svensk OSINT · INBLICK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#08090f;--deep:#0d1020;--panel:#111526;--border:#1a2038;--amber:#d4a843;--amber-dim:#7a5f1a;--amber-glow:rgba(212,168,67,0.12);--crimson:#c0392b;--crimson-dim:#6b1f17;--ice:#e8edf5;--mist:#7a87a8;--signal:#3a7bd5;--signal-dim:#1a3560;--green:#2ecc71;--green-dim:#1a6b3a;--gold-line:linear-gradient(90deg,transparent,var(--amber),transparent);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--ice);font-family:'Crimson Pro',Georgia,serif;font-size:18px;line-height:1.75;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.4;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--ink);}
+::-webkit-scrollbar-thumb{background:var(--amber-dim);border-radius:2px;}
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--amber),var(--crimson));width:0%;z-index:999;transition:width 0.1s linear;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 48px;background:rgba(8,9,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo-wrap{display:flex;align-items:center;gap:12px;}
+.nav-logo-img{height:44px;width:auto;object-fit:contain;flex-shrink:0;opacity:0.92;transition:opacity 0.2s;}
+.nav-logo-img:hover{opacity:1;}
+.nav-brand-text .brand-main{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.22em;color:var(--amber);text-transform:uppercase;display:block;}
+.nav-brand-text .brand-sub{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--mist);text-transform:uppercase;display:block;margin-top:1px;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.22em;color:var(--mist);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--amber);}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 0 72px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 90% 70% at 65% 35%,rgba(58,123,213,0.07) 0%,transparent 60%),radial-gradient(ellipse 55% 55% at 15% 85%,rgba(192,57,43,0.05) 0%,transparent 50%),radial-gradient(ellipse 45% 45% at 85% 15%,rgba(212,168,67,0.04) 0%,transparent 50%),var(--ink);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,32,56,0.35) 1px,transparent 1px),linear-gradient(90deg,rgba(26,32,56,0.35) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at center,black 20%,transparent 75%);}
+.hero-content{position:relative;z-index:2;max-width:1140px;margin:0 auto;padding:0 48px;width:100%;}
+.hero-two-col{display:grid;grid-template-columns:1fr 360px;gap:64px;align-items:center;}
+.hero-left{display:flex;flex-direction:column;}
+.hero-right{display:flex;align-items:center;justify-content:center;opacity:0;animation:fadeIn 1.2s 0.4s forwards;}
+.hero-logo-img{width:100%;max-width:320px;height:auto;object-fit:contain;filter:drop-shadow(0 0 48px rgba(212,168,67,0.18)) drop-shadow(0 0 16px rgba(212,168,67,0.08));transition:filter 0.4s ease;}
+.hero-logo-img:hover{filter:drop-shadow(0 0 64px rgba(212,168,67,0.28)) drop-shadow(0 0 20px rgba(212,168,67,0.14));}
+.hero-logo-block{display:flex;align-items:center;gap:24px;margin-bottom:48px;opacity:0;animation:fadeUp 0.8s 0.2s forwards;}
+.hero-logo-svg{width:72px;height:72px;}
+.hero-logo-text{border-left:2px solid var(--amber-dim);padding-left:20px;}
+.hero-logo-text .hl-main{font-family:'Space Mono',monospace;font-size:18px;letter-spacing:0.2em;color:var(--amber);text-transform:uppercase;display:block;}
+.hero-logo-text .hl-sub{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--mist);text-transform:uppercase;display:block;margin-top:4px;}
+.hero-chapter{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.4em;color:var(--amber);text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp 0.8s 0.3s forwards;}
+.hero-chapter::before{content:'';display:inline-block;width:32px;height:1px;background:var(--amber);vertical-align:middle;margin-right:14px;}
+h1.hero-title{font-family:'Playfair Display',Georgia,serif;font-size:clamp(38px,6.5vw,82px);font-weight:900;line-height:1.0;letter-spacing:-0.025em;color:var(--ice);max-width:820px;opacity:0;animation:fadeUp 0.9s 0.45s forwards;}
+h1.hero-title em{font-style:italic;color:var(--amber);}
+.kallas-quote{margin-top:36px;padding:24px 32px;border-left:3px solid var(--signal);background:rgba(58,123,213,0.06);max-width:680px;opacity:0;animation:fadeUp 0.9s 0.65s forwards;}
+.kallas-text{font-family:'Crimson Pro',serif;font-size:19px;font-style:italic;color:var(--ice);line-height:1.6;opacity:0.9;}
+.kallas-attr{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--signal);text-transform:uppercase;margin-top:12px;}
+.hero-meta{margin-top:40px;display:flex;align-items:center;gap:36px;opacity:0;animation:fadeUp 0.9s 0.85s forwards;}
+.conf-pill{display:flex;align-items:center;gap:14px;}
+.conf-num{font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--amber);line-height:1;}
+.conf-badge{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.18em;padding:7px 14px;border:1px solid var(--amber);color:var(--amber);text-transform:uppercase;}
+.conf-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;margin-top:3px;}
+.hero-sep{width:1px;height:56px;background:var(--border);}
+.hero-date{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.22em;color:var(--mist);text-transform:uppercase;line-height:1.8;}
+.scroll-ind{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:fadeIn 1s 1.6s forwards;}
+.scroll-ind span{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.35em;color:var(--mist);text-transform:uppercase;}
+.scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--amber),transparent);animation:scrollPulse 1.6s ease-in-out infinite;}
+
+/* INBLICK INLAGA */
+#inlaga{background:var(--deep);border-bottom:1px solid var(--border);padding:32px 0;}
+.inlaga-inner{max-width:1140px;margin:0 auto;padding:0 48px;display:flex;align-items:center;gap:36px;}
+.inlaga-icon{flex-shrink:0;width:52px;height:52px;}
+.inlaga-badge{flex-shrink:0;padding:14px 20px;border:1px solid var(--amber-dim);text-align:center;min-width:110px;}
+.inlaga-badge .ib-main{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--amber);}
+.inlaga-badge .ib-sub{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;margin-top:3px;}
+.inlaga-sep{width:1px;height:48px;background:var(--border);flex-shrink:0;}
+.inlaga-text{font-size:14px;color:var(--mist);font-weight:300;line-height:1.7;max-width:720px;}
+.inlaga-text strong{color:var(--ice);font-weight:600;}
+
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border);overflow:hidden;margin-top:56px;}
+.stat-cell{padding:28px 20px;border-right:1px solid var(--border);text-align:center;}
+.stat-cell:last-child{border-right:none;}
+.stat-val{font-family:'Playfair Display',serif;font-size:38px;font-weight:900;color:var(--amber);line-height:1;margin-bottom:6px;}
+.stat-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.18em;color:var(--mist);text-transform:uppercase;line-height:1.5;}
+
+/* SECTIONS */
+section{position:relative;padding:112px 0;}
+.container{max-width:1140px;margin:0 auto;padding:0 48px;}
+.sec-hdr{margin-bottom:64px;}
+.sec-num{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.38em;color:var(--amber);text-transform:uppercase;margin-bottom:18px;}
+.sec-num::before{content:'';display:inline-block;width:28px;height:1px;background:var(--amber);vertical-align:middle;margin-right:12px;}
+h2.sec-title{font-family:'Playfair Display',serif;font-size:clamp(26px,3.8vw,46px);font-weight:700;line-height:1.15;color:var(--ice);}
+p.sec-lead{margin-top:20px;font-size:19px;color:var(--mist);font-weight:300;max-width:620px;line-height:1.65;}
+
+/* BODY TEXT */
+.body-text p{font-size:18px;font-weight:300;color:var(--ice);margin-bottom:20px;line-height:1.8;opacity:0.92;}
+.body-text p strong{color:var(--amber);font-weight:600;}
+.body-text a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);transition:color 0.2s,border-color 0.2s;}
+.body-text a:hover{color:var(--amber);border-color:var(--amber-dim);}
+
+/* SOURCE INLINE LINKS */
+.src{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.12em;color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);vertical-align:super;padding:0 2px;transition:color 0.2s;}
+.src:hover{color:var(--amber);border-color:var(--amber-dim);}
+
+/* VIZ EMBED */
+.viz-embed{margin:40px 0;border:1px solid var(--border);background:var(--panel);overflow:hidden;}
+.viz-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.viz-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:blink 2s ease-in-out infinite;}
+.viz-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.25em;color:var(--amber);text-transform:uppercase;}
+.viz-source{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;color:var(--mist);margin-left:auto;}
+.viz-embed iframe{width:100%;height:520px;border:none;display:block;background:var(--deep);}
+
+/* MOSAIC */
+.mosaic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-top:48px;}
+.mosaic-card{background:var(--panel);padding:44px 40px;position:relative;overflow:hidden;border:1px solid var(--border);transition:border-color 0.35s;}
+.mosaic-card:hover{border-color:var(--amber-dim);}
+.mosaic-card.full{grid-column:span 2;}
+.mosaic-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold-line);transform:scaleX(0);transition:transform 0.45s ease;transform-origin:left;}
+.mosaic-card:hover::after{transform:scaleX(1);}
+.mc-num{font-family:'Playfair Display',serif;font-size:64px;font-weight:900;color:var(--border);line-height:1;position:absolute;top:20px;right:28px;transition:color 0.3s;}
+.mosaic-card:hover .mc-num{color:var(--amber-dim);}
+.mc-tag{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.32em;color:var(--amber);text-transform:uppercase;margin-bottom:14px;}
+.mc-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ice);margin-bottom:14px;line-height:1.3;}
+.mc-body{font-size:16px;color:var(--mist);font-weight:300;line-height:1.7;}
+.mc-body strong{color:var(--ice);font-weight:600;}
+.mc-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);transition:color 0.2s;}
+.mc-body a:hover{color:var(--amber);border-color:var(--amber-dim);}
+
+/* DOPPELGANGER CALLOUT */
+.doppel-block{margin:32px 0;padding:28px 36px;background:rgba(192,57,43,0.06);border:1px solid var(--crimson-dim);position:relative;overflow:hidden;}
+.doppel-block::before{content:'OPERATION';position:absolute;top:8px;right:16px;font-family:'Playfair Display',serif;font-size:80px;font-weight:900;color:rgba(192,57,43,0.04);pointer-events:none;line-height:1;}
+.doppel-tag{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.3em;color:var(--crimson);text-transform:uppercase;margin-bottom:10px;}
+.doppel-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ice);margin-bottom:12px;}
+.doppel-body{font-size:15px;color:var(--mist);font-weight:300;line-height:1.7;}
+.doppel-body strong{color:var(--ice);font-weight:600;}
+.doppel-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+.doppel-body a:hover{color:var(--amber);}
+
+/* TREFASIGT MÖNSTER */
+.trifase{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:32px 0;}
+.trifase-step{padding:32px 28px;border:1px solid var(--border);background:var(--panel);position:relative;}
+.trifase-step:nth-child(1){border-top:3px solid rgba(212,168,67,0.5);}
+.trifase-step:nth-child(2){border-top:3px solid rgba(192,57,43,0.5);}
+.trifase-step:nth-child(3){border-top:3px solid rgba(192,57,43,0.9);}
+.tf-phase{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.3em;color:var(--mist);text-transform:uppercase;margin-bottom:8px;}
+.tf-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ice);margin-bottom:10px;}
+.tf-body{font-size:14px;color:var(--mist);font-weight:300;line-height:1.65;}
+.tf-se{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;color:var(--amber);line-height:1.5;}
+
+/* DATA CALLOUT BOXES */
+.data-box{padding:20px 24px;border:1px solid var(--border);background:var(--panel);margin:20px 0;}
+.data-box-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--amber);line-height:1;}
+.data-box-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.2em;color:var(--mist);text-transform:uppercase;margin-top:4px;}
+
+/* QUOTE */
+.quote-block{padding:44px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:60px 0;background:var(--panel);position:relative;overflow:hidden;}
+.quote-block::before{content:'"';position:absolute;top:-24px;left:36px;font-family:'Playfair Display',serif;font-size:200px;color:rgba(212,168,67,0.05);line-height:1;pointer-events:none;}
+.qt{font-family:'Playfair Display',serif;font-size:clamp(18px,2.2vw,25px);font-style:italic;color:var(--ice);text-align:center;max-width:760px;margin:0 auto;line-height:1.55;padding:0 48px;}
+.qt-attr{text-align:center;margin-top:18px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--amber);text-transform:uppercase;}
+
+/* BAROMETER */
+.barometer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:32px;}
+.baro-cell{padding:32px 28px;background:var(--panel);border:1px solid var(--border);}
+.baro-val{font-family:'Playfair Display',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:8px;}
+.baro-val.red{color:var(--crimson);}
+.baro-val.amber{color:var(--amber);}
+.baro-val.mist{color:var(--mist);}
+.baro-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.18em;color:var(--mist);text-transform:uppercase;line-height:1.5;}
+.baro-body{font-size:14px;color:var(--mist);font-weight:300;line-height:1.65;margin-top:12px;}
+
+/* VULN ITEMS */
+.vuln-layout{display:grid;grid-template-columns:1fr 1.6fr;gap:72px;align-items:start;margin-top:48px;}
+.vuln-sticky{position:sticky;top:110px;}
+.vuln-date{font-family:'Space Mono',monospace;font-size:42px;font-weight:700;color:var(--crimson);line-height:1;margin-bottom:4px;}
+.vuln-date-lbl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;margin-bottom:24px;}
+.countdown-box{padding:20px 22px;border:1px solid var(--crimson-dim);background:rgba(192,57,43,0.05);}
+.cd-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.28em;color:var(--mist);text-transform:uppercase;margin-bottom:8px;}
+.cd-num{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;color:var(--crimson);line-height:1;}
+.cd-sub{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.2em;color:var(--mist);text-transform:uppercase;}
+.mpf-box{margin-top:8px;padding:18px 20px;border:1px solid var(--amber-dim);background:rgba(212,168,67,0.03);}
+.mpf-box-tag{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.28em;color:var(--amber);text-transform:uppercase;margin-bottom:8px;}
+.mpf-box-txt{font-size:13px;color:var(--mist);font-weight:300;line-height:1.65;font-style:italic;}
+.vuln-items{display:flex;flex-direction:column;gap:3px;}
+.vuln-card{padding:32px 36px;border:1px solid var(--border);background:var(--panel);transition:border-color 0.3s;}
+.vuln-card:hover{border-color:var(--crimson-dim);}
+.vc-num{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.25em;color:var(--crimson);text-transform:uppercase;margin-bottom:10px;}
+.vc-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ice);margin-bottom:10px;}
+.vc-body{font-size:15px;color:var(--mist);font-weight:300;line-height:1.7;}
+.vc-body strong{color:var(--amber);font-weight:600;}
+.vc-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+.vc-body a:hover{color:var(--amber);}
+.vc-tag{margin-top:12px;display:inline-block;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.2em;padding:4px 10px;background:rgba(192,57,43,0.1);border:1px solid var(--crimson-dim);color:var(--crimson);text-transform:uppercase;}
+
+/* AI CARDS */
+.ai-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-top:48px;}
+.ai-card{padding:40px 36px;background:var(--ink);border:1px solid var(--border);position:relative;}
+.ai-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--signal),var(--amber));}
+.ai-icon{font-size:28px;margin-bottom:18px;display:block;}
+.ai-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ice);margin-bottom:12px;}
+.ai-body{font-size:15px;color:var(--mist);font-weight:300;line-height:1.7;}
+.ai-body strong{color:var(--signal);font-weight:600;}
+.ai-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+.ai-body a:hover{color:var(--amber);}
+
+/* ASSESSMENT */
+#assessment{background:var(--ink);position:relative;overflow:hidden;}
+#assessment::before{content:'TROLIGT';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Playfair Display',serif;font-size:clamp(100px,17vw,210px);font-weight:900;color:rgba(212,168,67,0.025);white-space:nowrap;pointer-events:none;letter-spacing:-0.05em;}
+.assessment-layout{position:relative;z-index:2;display:grid;grid-template-columns:280px 1fr;gap:72px;align-items:start;margin-top:48px;}
+.conf-ring-wrap{position:sticky;top:110px;text-align:center;}
+.conf-ring{width:180px;height:180px;margin:0 auto 20px;}
+.conf-ring svg{transform:rotate(-90deg);width:180px;height:180px;}
+.cr-text{position:relative;margin-top:-180px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;}
+.cr-pct{font-family:'Playfair Display',serif;font-size:40px;font-weight:900;color:var(--amber);line-height:1;}
+.cr-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;}
+.verdict-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.2em;padding:10px 24px;background:rgba(212,168,67,0.1);border:1px solid var(--amber);color:var(--amber);text-transform:uppercase;margin-bottom:16px;}
+.assess-body p{font-size:17px;font-weight:300;color:var(--ice);margin-bottom:18px;line-height:1.8;opacity:0.92;}
+.assess-body p strong{color:var(--amber);font-weight:600;}
+.assess-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+.assess-body a:hover{color:var(--amber);}
+.uncert-block{margin-top:24px;padding:24px 28px;border-left:3px solid var(--signal);background:rgba(58,123,213,0.05);}
+.uncert-lbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.3em;color:var(--signal);text-transform:uppercase;margin-bottom:10px;}
+.uncert-text{font-size:15px;color:var(--mist);font-weight:300;line-height:1.7;}
+.uncert-text a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+
+/* INDICATORS */
+.ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:48px;}
+.ind-card{padding:36px;background:var(--panel);border:1px solid var(--border);}
+.ind-status{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.status-dot{width:7px;height:7px;border-radius:50%;animation:blink 2s ease-in-out infinite;}
+.sd-amber{background:var(--amber);box-shadow:0 0 7px var(--amber);}
+.sd-crimson{background:var(--crimson);box-shadow:0 0 7px var(--crimson);}
+.sd-green{background:var(--green);box-shadow:0 0 7px var(--green);}
+.sd-signal{background:var(--signal);box-shadow:0 0 7px var(--signal);}
+.ind-slbl{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;}
+.ind-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--ice);margin-bottom:12px;}
+.ind-body{font-size:14px;color:var(--mist);font-weight:300;line-height:1.7;}
+.ind-body strong{color:var(--amber);font-weight:600;}
+.ind-body a{color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);}
+.ind-body a:hover{color:var(--amber);}
+
+/* SOURCES */
+#sources{background:var(--deep);padding-bottom:80px;}
+.sources-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:48px;}
+.src-group{padding:28px;background:var(--panel);border:1px solid var(--border);}
+.src-group-title{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.32em;color:var(--amber);text-transform:uppercase;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.src-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.src-list li{font-size:12px;color:var(--mist);font-weight:300;line-height:1.5;padding-left:10px;border-left:1px solid var(--border);}
+.src-list a{color:var(--signal);text-decoration:none;}
+.src-list a:hover{color:var(--amber);}
+
+/* GOLD RULE */
+.gold-rule{width:100%;height:1px;background:var(--gold-line);margin:56px 0;opacity:0.5;}
+
+/* FOOTER */
+footer{padding:40px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--deep);}
+.footer-logo{display:flex;align-items:center;gap:14px;}
+.footer-logo svg{width:36px;height:36px;opacity:0.7;}
+.footer-brand{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.25em;color:var(--amber);text-transform:uppercase;}
+.footer-sub{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;color:var(--mist);margin-top:2px;}
+.footer-note{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.12em;color:var(--mist);text-align:right;line-height:1.7;}
+
+/* ALTERNATING BG */
+.bg-deep{background:var(--deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes scrollPulse{0%,100%{opacity:0.3;transform:scaleY(0.7);}50%{opacity:1;transform:scaleY(1);}}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity 0.85s ease,transform 0.85s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:0.08s;}.rd2{transition-delay:0.18s;}.rd3{transition-delay:0.28s;}.rd4{transition-delay:0.38s;}
+
+@media(max-width:900px){
+nav{padding:14px 20px;} .nav-links{display:none;}
+.hero-content,.container{padding:0 22px;}
+.hero-two-col{grid-template-columns:1fr;} .hero-right{display:none;}
+.stats-strip,.mosaic-grid,.vuln-layout,.assessment-layout,.ai-grid,.ind-grid,.sources-grid,.trifase,.barometer-grid{grid-template-columns:1fr;}
+.mosaic-card.full{grid-column:span 1;}
+.inlaga-inner{flex-direction:column;gap:16px;} .inlaga-sep{display:none;}
+footer{flex-direction:column;gap:20px;text-align:center;} .footer-note{text-align:center;}
+}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<!-- SVG LOGO DEFINITION (reusable) -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="logo-fp" viewBox="0 0 80 80">
+    <circle cx="40" cy="40" r="38" fill="none" stroke="rgba(212,168,67,0.25)" stroke-width="1"/>
+    <!-- Fingerprint arcs -->
+    <path d="M40 14 C53 14 64 24 64 38" fill="none" stroke="rgba(212,168,67,0.7)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M40 19 C50 19 60 28 60 40" fill="none" stroke="rgba(212,168,67,0.65)" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M40 24 C48 24 56 32 56 42" fill="none" stroke="rgba(212,168,67,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M40 28 C46 28 52 34 52 43" fill="none" stroke="rgba(212,168,67,0.55)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M40 32 C44 32 48 36 48 43" fill="none" stroke="rgba(212,168,67,0.5)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M40 14 C27 14 16 24 16 38" fill="none" stroke="rgba(212,168,67,0.7)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M40 19 C30 19 20 28 20 40" fill="none" stroke="rgba(212,168,67,0.65)" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M40 24 C32 24 24 32 24 42" fill="none" stroke="rgba(212,168,67,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M40 28 C34 28 28 34 28 43" fill="none" stroke="rgba(212,168,67,0.55)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M40 32 C36 32 32 36 32 43" fill="none" stroke="rgba(212,168,67,0.5)" stroke-width="1.3" stroke-linecap="round"/>
+    <!-- Bottom arcs -->
+    <path d="M16 42 C16 56 27 66 40 66 C53 66 64 56 64 42" fill="none" stroke="rgba(212,168,67,0.4)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M20 44 C20 55 29 62 40 62 C51 62 60 55 60 44" fill="none" stroke="rgba(212,168,67,0.35)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M24 46 C24 53 31 58 40 58 C49 58 56 53 56 46" fill="none" stroke="rgba(212,168,67,0.3)" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Center dot -->
+    <circle cx="40" cy="40" r="3" fill="var(--amber)" opacity="0.8"/>
+    <!-- Magnifying glass overlay -->
+    <circle cx="54" cy="54" r="10" fill="none" stroke="rgba(212,168,67,0.9)" stroke-width="2.5"/>
+    <circle cx="54" cy="54" r="6" fill="rgba(212,168,67,0.08)"/>
+    <line x1="61" y1="61" x2="69" y2="69" stroke="rgba(212,168,67,0.9)" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo-wrap">
+    <img src="./inblick-logo.png" alt="Svensk OSINT · INBLICK" class="nav-logo-img">
+    <div class="nav-brand-text">
+      <span class="brand-main">Svensk OSINT</span>
+      <span class="brand-sub">Analyskatalog INBLICK</span>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#hotbild">Hotbild</a></li>
+    <li><a href="#metoder">Metoder</a></li>
+    <li><a href="#valet">Valet 2026</a></li>
+    <li><a href="#ai-section">AI</a></li>
+    <li><a href="#assessment">Bedömning</a></li>
+    <li><a href="#sources">Källor</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-two-col">
+
+      <!-- LEFT: text -->
+      <div class="hero-left">
+        <div class="hero-chapter"><span></span>Informationsmiljö &amp; Valskydd</div>
+        <h1 class="hero-title">Informationskrig&shy;föring och <em>påverkans&shy;operationer</em></h1>
+        <div class="kallas-quote">
+          <div class="kallas-text">"Today's wars are not only fought with tanks and drones but with lies and algorithms too. The information space is a frontline in the fight for democracy."</div>
+          <div class="kallas-attr">— <a href="https://www.eeas.europa.eu/eeas/dismantling-infrastructure-foreign-information-manipulation-and-interference-house-cards_en" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">Kaja Kallas, EU HR/VP · EEAS FIMI-konferensen, Bryssel 10 mars 2026</a></div>
+        </div>
+        <div class="hero-meta">
+          <div class="conf-pill">
+            <div>
+              <div class="conf-num">75%</div>
+              <div class="conf-lbl">Konfidens</div>
+            </div>
+            <div class="conf-badge">Troligt</div>
+          </div>
+          <div class="hero-sep"></div>
+          <div>
+            <div class="hero-date">Svensk OSINT · 2026</div>
+            <div class="hero-date" style="color:var(--amber)">Analyskatalog INBLICK</div>
+            <div class="hero-date">Riksdagsvalet 13 september 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: logo image -->
+      <div class="hero-right">
+        <img
+          src="./inblick-logo.png"
+          alt="Svensk OSINT · INBLICK"
+          class="hero-logo-img"
+        >
+      </div>
+
+    </div>
+  </div>
+  <div class="scroll-ind">
+    <div class="scroll-line"></div>
+    <span>Scrolla</span>
+  </div>
+</section>
+
+<!-- INBLICK INLAGA -->
+<div id="inlaga">
+  <div class="inlaga-inner">
+    <img src="./inblick-logo.png" alt="Svensk OSINT · INBLICK" class="inlaga-icon" style="width:52px;height:auto;object-fit:contain;flex-shrink:0;opacity:0.88;">
+    <div class="inlaga-badge">
+      <div class="ib-main">INBLICK</div>
+      <div class="ib-sub">Analyskatalog</div>
+      <div class="ib-sub" style="margin-top:3px">Svensk OSINT</div>
+    </div>
+    <div class="inlaga-sep"></div>
+    <div class="inlaga-text">
+      <strong>Denna analys ingår i Svensk OSINTs analyskatalog INBLICK</strong> — ett frivilligdrivet analytiskt projekt med fokus på säkerhetspolitik, hybridhot och geopolitisk riskbedömning. Kapitlet behandlar det informationskrigföringshot som riktas mot Sverige inför riksdagsvalet 2026, med utgångspunkt i öppna källor från svenska myndigheter, europeiska institutioner och oberoende forskning. Bedömningar presenteras med explicita konfidensgrader och källhänvisningar. Analysen är inte en myndighetspublikation och speglar inte officiella svenska ståndpunkter.
+    </div>
+  </div>
+</div>
+
+<!-- STATS STRIP -->
+<div class="container">
+  <div class="stats-strip reveal">
+    <div class="stat-cell">
+      <div class="stat-val" data-count="540">0</div>
+      <div class="stat-lbl">FIMI-incidenter<br>EEAS 2025</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" data-count="255">0</div>
+      <div class="stat-lbl">Hybridincidenter<br>Soufan Center 2022–25</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" data-count="151">0</div>
+      <div class="stat-lbl">Bekräftade ryska<br>operationer ICCT/GLOBSEC</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val">88%</div>
+      <div class="stat-lbl">Koordinerad FIMI<br>koncentrerad till X</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-val" id="hero-countdown">—</div>
+      <div class="stat-lbl">Dagar till<br>riksdagsvalet</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 01: HOTBILD -->
+<section id="hotbild">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">01 — Den ryska hotbilden i siffror</div>
+      <h2 class="sec-title">Hybridoperationernas<br>skala är nu kvantifierad</h2>
+      <p class="sec-lead">Ryska informationsoperationer mot Europa följer ett välkänt men ständigt anpassat mönster — och deras omfattning dokumenteras nu i flera oberoende databaser.</p>
+    </div>
+
+    <div class="body-text reveal rd1">
+      <p><a href="https://www.forsvarsmakten.se/globalassets/must-arsoversikt-2025.pdf" target="_blank">MUST-chefen Thomas Nilsson</a> konstaterade i november 2025 att Sverige är en allt oftare måltavla i takt med att Ryssland intensifierar hybridkriget mot väst efter Sveriges NATO-inträde. <a href="https://mpf.se/om-oss/nyheter/2025/2025-11-21-god-motstandskraft-mot-informationspaverkan-infor-valet" target="_blank">MPF:s generaldirektör Magnus Hjort</a> bekräftar att ryska aktörer arbetar <strong>systematiskt och med betydande resurser</strong>, med målet att skada Sverige och påverka uppfattningar, beslut och beteenden — med fokus på frågor som skapar oro och sår splittring i befolkningen.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin:36px 0;" class="reveal rd2">
+      <div class="data-box">
+        <div class="data-box-num">151</div>
+        <div class="data-box-lbl"><a href="https://icct.nl" target="_blank" style="color:var(--signal);text-decoration:none;">ICCT/GLOBSEC (feb. 2026)</a> — bekräftade ryska hybridoperationer i Europa 2022–2026, varav 41 nya fall i senaste perioden. I Tyskland registrerades upp till 320 misstänkta sabotageförsök under 2025 ensamt.</div>
+      </div>
+      <div class="data-box">
+        <div class="data-box-num">219</div>
+        <div class="data-box-lbl"><a href="https://www.csis.org/analysis/russias-shadow-war-against-the-west" target="_blank" style="color:var(--signal);text-decoration:none;">CSIS (mars 2025)</a> — incidenter av misstänkt rysk hybridkrigföring dokumenterade 2014–2025. Antalet ryska attacker mot europeiska mål nästan tredubblades mellan 2023 och 2024.</div>
+      </div>
+      <div class="data-box">
+        <div class="data-box-num">255</div>
+        <div class="data-box-lbl"><a href="https://thesoufancenter.org/research/priming-destabilizing-coercing-russian-hybrid-tactics-in-europe-2022-2025/" target="_blank" style="color:var(--signal);text-decoration:none;">The Soufan Center (mars 2026)</a> — hybridincidenter mot sex europeiska länder 2022–2025. Stöd till Ukraina är den enskilt viktigaste faktorn för rysk målselektion.</div>
+      </div>
+      <div class="data-box">
+        <div class="data-box-num">540</div>
+        <div class="data-box-lbl"><a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank" style="color:var(--signal);text-decoration:none;">EEAS 4:e FIMI-rapport (mars 2026)</a> — FIMI-incidenter globalt 2025, på 10 500 kanaler i 90 länder. 35% kopplades till Ryssland (29%) och Kina (6%). AI-TTP:er ökade med 259%.</div>
+      </div>
+    </div>
+
+    <!-- VIZ 1: Soufan Center -->
+    <div class="viz-embed reveal rd3">
+      <div class="viz-header">
+        <div class="viz-dot"></div>
+        <div class="viz-title">Visualisering — Hybridhändelser: The Soufan Center (255 incidenter 2022–2025)</div>
+        <div class="viz-source"><a href="https://veckobrevskartan.github.io/Hybridh-ndelser-TSC/" target="_blank" style="color:var(--signal);text-decoration:none;font-family:'Space Mono',monospace;font-size:8px;">Öppna i nytt fönster ↗</a></div>
+      </div>
+      <iframe src="https://veckobrevskartan.github.io/Hybridh-ndelser-TSC/" loading="lazy" title="Soufan Center: Hybridhändelser i Europa 2022–2025"></iframe>
+    </div>
+
+    <!-- VIZ 2: FIMI EEAS -->
+    <div class="viz-embed reveal rd3">
+      <div class="viz-header">
+        <div class="viz-dot"></div>
+        <div class="viz-title">Visualisering — FIMI: Dismantling the House of Cards (EEAS mars 2026)</div>
+        <div class="viz-source"><a href="https://veckobrevskartan.github.io/visualisering-FIMI-Dismantling-the-FIMI-House-of-cards-mars-2026/" target="_blank" style="color:var(--signal);text-decoration:none;font-family:'Space Mono',monospace;font-size:8px;">Öppna i nytt fönster ↗</a></div>
+      </div>
+      <iframe src="https://veckobrevskartan.github.io/visualisering-FIMI-Dismantling-the-FIMI-House-of-cards-mars-2026/" loading="lazy" title="EEAS FIMI-rapport 2026: Dismantling the House of Cards"></iframe>
+    </div>
+
+    <div class="quote-block reveal">
+      <div class="qt">"Desto mer polariserad debatten är i Sverige, desto lättare är det för utländska aktörer att hälla bensin på elden. Det är inte påverkansoperationerna i sig som avgör utfallet — det är det inhemska politiska klimat de möter."</div>
+      <div class="qt-attr">— <a href="https://carnegieendowment.org/research/2024/11/russia-gray-zone-aggression-baltic-nordic" target="_blank" style="color:var(--amber);text-decoration:none;">Jerker Sundstrand, senior analytiker MPF · Carnegie Endowment 2024</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02: METODER -->
+<section id="metoder" class="bg-deep">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">02 — Operativa metoder</div>
+      <h2 class="sec-title">Fyra angreppsvektorer</h2>
+      <p class="sec-lead">Ryska informationsoperationer kombinerar narrativinjicering, algoritmisk amplifiering, kanalmigrering och — som ny framväxande metod — LLM-grooming.</p>
+    </div>
+
+    <div class="mosaic-grid">
+      <div class="mosaic-card reveal rd1">
+        <div class="mc-num">01</div>
+        <div class="mc-tag">⬤ Primärmetod</div>
+        <div class="mc-title">Narrativinjicering</div>
+        <div class="mc-body">
+          Rysslandsvänliga eller destabiliserande berättelser placeras i det offentliga samtalet via till synes legitima informationskanaler. <a href="https://www.svt.se/nyheter/inrikes/60-hybridattacker-mot-europa-sparen-pekar-mot-ryssland" target="_blank">SVT:s granskning i samarbete med Dossier Center</a> och flera europeiska public service-bolag tog del av dokument inifrån rysk underrättelsetjänst — tio EU-, NATO- och Ukrainakritiska aktioner identifierades som misstänkt orkestrerade av rysk underrättelsetjänst, inklusive iscensatta demonstrationer i europeiska städer.
+        </div>
+      </div>
+      <div class="mosaic-card reveal rd2">
+        <div class="mc-num">02</div>
+        <div class="mc-tag">⬤ Skaloperationer</div>
+        <div class="mc-title">Algoritmisk amplifiering</div>
+        <div class="mc-body">
+          <strong>88% av all koordinerad FIMI-aktivitet</strong> i <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS-rapporten</a> koncentrerades till X. <a href="https://news.sky.com/story/how-sky-news-investigated-xs-algorithm-for-political-bias-13463916" target="_blank">Sky News systematiska undersökning</a> (nov. 2025) visade att algoritmen konsekvent styrde användare mot högerextremt innehåll — mätbart inom 48 timmar. <a href="https://techpolicy.press/new-research-points-to-possible-algorithmic-bias-on-x" target="_blank">Queensland University of Technology</a> fann att X:s algoritm ändrades i juli 2024 och ökade Musks inläggs räckvidd med 138% i visningar och 238% i retweets jämfört med övriga politiska konton.
+        </div>
+      </div>
+      <div class="mosaic-card reveal rd3">
+        <div class="mc-num">03</div>
+        <div class="mc-tag">⬤ Reglerkringgående</div>
+        <div class="mc-title">Kanalmigrering</div>
+        <div class="mc-body">
+          EU:s skärpta lagstiftning driver kampanjer mot influencernätverk, slutna Telegramgrupper och TikTok. <a href="https://www.thenationalnews.com/news/europe/2025/02/05/rise-of-murky-accounts-backing-germanys-far-right-on-tiktok/" target="_blank">Democracy Reporting Internationals granskning</a> av tyska, rumänska och polska val identifierade 606 <em>murky accounts</em> på TikTok — 69% av de flaggade tyska kontona marknadsförde AfD medan koordinationsnätverken opererade via Telegram med belöningssystem för att undvika moderering.
+        </div>
+      </div>
+      <div class="mosaic-card reveal rd4">
+        <div class="mc-num">04</div>
+        <div class="mc-tag">⬤ Framväxande TTP</div>
+        <div class="mc-title">LLM-grooming</div>
+        <div class="mc-body">
+          Pro-ryska aktörer förgiftar träningsdata och sökindex hos stora språkmodeller. <a href="https://kallkritikbyran.se/sa-infiltrerar-ryska-propagandasidor-ai-chattbottar-i-norden/" target="_blank">NordisHub och Källkritikbyrån (maj 2025)</a> visade att nordiska AI-chattbotar (ChatGPT, Gemini, Copilot) använde artiklar från det ryska Pravda-nätverket — ~182 domäner i 74 länder — vid promptning på nordiska språk. NewsGuard/UTS dokumenterade att chattbotar upprepade rysk desinformation i <strong>33,55% av fallen</strong>, upp från 18% 2024. <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS noterar LLM-grooming</a> explicit som framväxande TTP i 2025 års operationer.
+        </div>
+      </div>
+    </div>
+
+    <!-- Operation Doppelganger -->
+    <div class="doppel-block reveal" style="margin-top:40px;">
+      <div class="doppel-tag">⬤ Fallstudie — Industriell Narrativinjicering</div>
+      <div class="doppel-title">Operation Doppelgänger</div>
+      <div class="doppel-body">
+        Det mest väldokumenterade exemplet på rysk påverkansinfrastruktur i industriell skala. Drivet av bolagen Social Design Agency (SDA), Structura och ANO Dialog under Kremls presidentadministrations direkta kontroll och Sergej Kiriyenkos ledning. <a href="https://www.justice.gov/archives/opa/pr/justice-department-disrupts-covert-russian-government-sponsored-foreign-malign-influence" target="_blank">US Department of Justice beslagtog 32 internetdomäner</a> kopplade till operationen i september 2024. Operationen skapar falska kopior av legitima nyhetswebbplatser, publicerar manipulerat innehåll och distribuerar det via koordinerade konton med AI-genererade bilder och text.<br><br>
+        <a href="https://www.euronews.com/my-europe/2025/01/22/russias-disinformation-operations-resurface-ahead-of-german-election" target="_blank">Inför det tyska förbundsdagsvalet i februari 2025</a> identifierade det tyska centret CeMAS 630 inlägg på X med typiska Doppelgänger-mönster, riktade för att gynna AfD. <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS FIMI-rapporten 2026</a> konstaterar att samma infrastruktur nu är aktiv inför Armeniens val i juni 2026 — och att mönstret är direkt överförbart på Sverige. Mer om operationen: <a href="https://www.disinfo.eu/doppelganger-hub/" target="_blank">EU DisinfoLab Doppelgänger Hub</a>.
+      </div>
+    </div>
+
+    <!-- Trefasigt mönster -->
+    <div style="margin-top:48px;" class="reveal">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.35em;color:var(--amber);text-transform:uppercase;margin-bottom:20px;">⬤ Operationslogik — Det trefasiga mönstret (<a href="https://thesoufancenter.org/research/priming-destabilizing-coercing-russian-hybrid-tactics-in-europe-2022-2025/" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">The Soufan Center / EEAS</a>)</div>
+      <div class="trifase">
+        <div class="trifase-step">
+          <div class="tf-phase">Fas 1</div>
+          <div class="tf-name">Priming</div>
+          <div class="tf-body">Delegitimering av ledarskap och institutioner månader före valet. Narrativ om att etablerade partier är korrupta, inkompetenta eller landets fienders verktyg.</div>
+          <div class="tf-se">Sverige: NATO-inträdet 2024 — ökad rysk FIMI om NATO-förtroendet. Förtroendebarometern 2026: −10 procentenheter på ett år.</div>
+        </div>
+        <div class="trifase-step">
+          <div class="tf-phase">Fas 2</div>
+          <div class="tf-name">Destabilisering</div>
+          <div class="tf-body">Förstärkning av inhemska splittringar när valdagen närmar sig. Specifika sakfrågor utnyttjas för att driva kilar mellan väljargrupper.</div>
+          <div class="tf-se">Sverige: Det försämrade säkerhetsläget 2025–2026 — migration, energipriser, NATO-trovärdighet som aktiva klyvspaltsämnen.</div>
+        </div>
+        <div class="trifase-step">
+          <div class="tf-phase">Fas 3</div>
+          <div class="tf-name">Tvång</div>
+          <div class="tf-body">Undergrävning av valintegritet och ifrågasättande av valresultatet i slutskedet. Manipulation av narrativ om valfusk och illegitima institutioner.</div>
+          <div class="tf-se">Sverige: Valet 13 september 2026 utgör tvångsfasen i operationslogiken — perioden juni–september 2026 är kritisk.</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--mist);font-weight:300;line-height:1.7;margin-top:12px;">Samma trefasiga mönster är dokumenterat i Moldavien, Rumänien, Frankrike, Tyskland och Storbritannien enligt <a href="https://thesoufancenter.org/research/priming-destabilizing-coercing-russian-hybrid-tactics-in-europe-2022-2025/" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">The Soufan Centers rapport</a> och <a href="https://carnegieendowment.org/research/2024/11/russia-gray-zone-aggression-baltic-nordic" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">Carnegie Endowment for International Peace</a>.</div>
+    </div>
+
+    <!-- X och TikTok details -->
+    <div class="gold-rule reveal"></div>
+    <div class="body-text reveal">
+      <p><strong>Musks direkta engagemang i europeiska valrörelser</strong> gick utöver algoritmisk styrning. Den 9 januari 2025 genomförde han en 74 minuter lång livesänd intervju med <a href="https://www.bbc.com/news/articles/cr7errxp5jmo" target="_blank">AfD:s partiledare Alice Weidel på X</a>, uppmanade tyska väljare att rösta AfD och deltog virtuellt vid ett AfD-valmöte. <a href="https://algorithmwatch.org/en/the-musk-effect/" target="_blank">AlgorithmWatch och DFRLab (<em>The Musk Effect</em>, feb. 2025)</a> fastslår att Weidel–Musk-interaktionerna drev en signifikant andel av AfD:s X-engagemang och att en stor andel av de engagerade kontona var engelskspråkiga — utländska amplifierare, inte tyska väljare. <a href="https://carnegieendowment.org/europe/strategic-europe/2025/01/taking-the-pulse-is-elon-musk-meddling-in-european-politics" target="_blank">Carnegie Endowment</a> bedömer Musks agenda som ett försök att fragmentera EU — ett mål som strukturellt sammanfaller med Kremls intresse att försvaga det transatlantiska samarbetet.</p>
+      <p><strong>Rumänien utgör det mest dramatiska varningsfallet.</strong> I november 2024 vann den pro-ryska kandidaten Călin Georgescu den första valomgången med 23% efter att ha legat på 5% i opinionsmätningar — ett genombrott drivet av över <strong>27 000 falska TikTok-konton</strong>, trollfarmar med ryska e-postadresser och turkiska IP-adresser, och 2,1 miljoner koordinerade kommentarer under de 24 timmar som föregick röstningen. Rumäniens konstitutionella domstol annullerade valet och EU öppnade formell DSA-undersökning av TikTok. <a href="https://www.ox.ac.uk/news/2025-05-22-expert-comment-which-urgent-tech-lessons-must-eu-take-romania-s-election" target="_blank">Oxford-forskaren Roxana Radu</a> konstaterar: <em>"Rumänien var en frontlinjeförhandsvisning av utmaningar som möter demokratier i hela Europa."</em></p>
+      <p><strong>EU:s DSA-beslut mot X</strong> kom 5 december 2025: <a href="https://www.theguardian.com/technology/2025/dec/05/elon-musk-x-fined-eu-first-clash-under-new-digital-laws" target="_blank">en böter på 120 miljoner euro</a> för tre brott mot transparensförpliktelserna — det vilseledande blue checkmark-systemet (45 mn), bristande annonsdataregister (35 mn) och hinder mot forskarnas datatillgång (40 mn). Tre separata undersökningar om algoritmmanipulation och informationsmanipulation mot X fortsätter. <a href="https://www.dw.com/en/eu-regulators-take-a-hard-look-at-elon-musk-and-x/a-71268936" target="_blank">EU har dessutom utfärdat en retention order</a> som kräver att X bevarar all dokumentation om algoritmförändringar.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03: NORDISK-BALTISK KONTEXT -->
+<section id="nordisk">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">03 — Nordisk-baltisk kontext</div>
+      <h2 class="sec-title">Sverige är inte ett<br>isolerat mål</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;" class="reveal rd1">
+      <div style="padding:36px 40px;background:var(--panel);border:1px solid var(--border);">
+        <div class="mc-tag" style="margin-bottom:14px;">Hybrid CoE · maj 2024</div>
+        <div class="mc-title" style="font-size:19px;">Österjöregionens<br>hotbild</div>
+        <div class="mc-body"><a href="https://www.hybridcoe.fi/wp-content/uploads/2024/05/20240530-Hybrid-CoE-Working-Paper-32-Russias-hybrid-threat-tactics-WEB.pdf" target="_blank">Hybrid CoE Working Paper 32</a> dokumenterar ryska hybridoperationer i kategorierna desinformation, cyberattacker, instrumentaliserad migration och sabotage mot Estland, Finland, Lettland, Litauen och Polen. Operationerna är inte isolerade nationella händelser utan koordinerade delar av en regional strategi. <a href="https://frivarld.se/rapporter/tracking-the-russian-hybrid-warfare-cases-from-nordic-baltic-countries/" target="_blank">Frivärlds rapport <em>Tracking the Russian Hybrid Warfare</em></a> (maj 2024) samlar experter från alla nordisk-baltiska stater med konkreta fallstudier.</div>
+      </div>
+      <div style="padding:36px 40px;background:var(--panel);border:1px solid var(--border);">
+        <div class="mc-tag" style="margin-bottom:14px;">Carnegie Endowment · nov. 2024</div>
+        <div class="mc-title" style="font-size:19px;">Regional koordination<br>är avgörande</div>
+        <div class="mc-body"><a href="https://carnegieendowment.org/research/2024/11/russia-gray-zone-aggression-baltic-nordic" target="_blank"><em>Death by a Thousand Paper Cuts</em></a> konstaterar att Ryssland anpassar hybridinstrumenten till varje måls specifika sårbarhet — och att nordisk-baltisk regional koordination är avgörande eftersom enskilda länder saknar kapacitet att möta den samlade operationsvolymen. <a href="https://neweasterneurope.eu/2025/08/15/hybrid-storm-over-the-north-russias-grey-zone-offensive-in-the-nordic-region/" target="_blank">New Eastern Europe (aug. 2025)</a> identifierar Sverige, efter NATO-inträdet, som ett av de mest exponerade länderna i den nordiska regionen.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 04: VALET 2026 -->
+<section id="valet" class="bg-deep">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">04 — Det svenska riksdagsvalet september 2026</div>
+      <h2 class="sec-title">Tre strukturella<br>sårbarheter</h2>
+    </div>
+
+    <!-- Förtroendebarometern -->
+    <div style="margin-bottom:56px;" class="reveal rd1">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.3em;color:var(--amber);text-transform:uppercase;margin-bottom:16px;">⬤ Förtroendebarometern 2026 — <a href="https://medieakademin.se/fortroendebarometern-2026-nato-rasar-kungahuset-nar-rekordnivaer-och-framtidstron-okar/" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">Medieakademin, mars 2026</a></div>
+      <div class="barometer-grid">
+        <div class="baro-cell">
+          <div class="baro-val red">−10 pp</div>
+          <div class="baro-lbl">NATO-förtroende<br>på ett år (nu 47%)</div>
+          <div class="baro-body">Den kraftigaste nedgången för något enskilt objekt i mätningens trettioåriga historia — ett tydligt tecken på att priming-fasen delvis redan är genomförd.</div>
+        </div>
+        <div class="baro-cell">
+          <div class="baro-val red">16%</div>
+          <div class="baro-lbl">Förtroende för<br>politiska partier</div>
+          <div class="baro-body">Historiskt lägsta nivå på fem år. Erosionen av institutionsförtroende är ett av de primära målen för ryska påverkansoperationer.</div>
+        </div>
+        <div class="baro-cell">
+          <div class="baro-val amber">↑</div>
+          <div class="baro-lbl">Desinformation upplevs<br>mer inflytelserik än institutioner</div>
+          <div class="baro-body">Allt fler uppfattar att desinformation och influencers har <em>större</em> inflytande än näringsliv och fack — en perception som i sig är en FIMI-effekt.</div>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--mist);font-weight:300;line-height:1.7;margin-top:16px;padding:16px 20px;border-left:3px solid var(--amber);background:rgba(212,168,67,0.04);">
+        <a href="https://www.idea.int/publications/catalogue/protecting-electoral-integrity-case-sweden" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">International IDEA:s rapport <em>Protecting Electoral Integrity: The Case of Sweden</em> (maj 2026)</a> identifierar det nätverksbaserade samordningsramverket — där MPF, SÄPO, MSB och Valmyndigheten samverkar — som en reell styrka, men pekar på att resursobalansen mellan nationella och lokala aktörer kvarstår som strukturell sårbarhet.
+      </div>
+    </div>
+
+    <div class="vuln-layout">
+      <div class="vuln-sticky reveal">
+        <div class="vuln-date">13 SEP</div>
+        <div class="vuln-date-lbl">Riksdagsval 2026</div>
+        <div class="countdown-box">
+          <div class="cd-lbl">Återstående tid</div>
+          <div class="cd-num" id="countdown-days">—</div>
+          <div class="cd-sub">Dagar till valet</div>
+        </div>
+        <div class="mpf-box">
+          <div class="mpf-box-tag">MPF:s bedömning</div>
+          <div class="mpf-box-txt">"Sverige är för närvarande inte en huvudmåltavla för rysk informationspåverkan — men läget kan förändras snabbt givet det rådande säkerhetsläget."</div>
+          <div style="margin-top:10px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.15em;"><a href="https://mpf.se/om-oss/nyheter/2025/2025-11-21-god-motstandskraft-mot-informationspaverkan-infor-valet" target="_blank" style="color:var(--signal);text-decoration:none;">MPF nov. 2025</a></div>
+        </div>
+        <div style="margin-top:8px;padding:16px 18px;border:1px solid var(--border);background:var(--panel);">
+          <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;margin-bottom:8px;">Partiledarmötet</div>
+          <div style="font-size:13px;color:var(--mist);font-weight:300;line-height:1.65;">6 februari 2026: Statsminister Kristersson kallar samtliga partiledare. Valmyndigheten, SÄPO och MPF föredrar sina lägesbilder. <a href="https://www.regeringen.se/pressmeddelanden/2026/02/statsministern-bjod-in-till-partiledarmote-om-valpaverkan/" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">Regeringen.se</a></div>
+        </div>
+      </div>
+
+      <div class="vuln-items">
+        <div class="vuln-card reveal rd1">
+          <div class="vc-num">Sårbarhet 01</div>
+          <div class="vc-title">Valmyndighetens informationskanaler är blockerade</div>
+          <div class="vc-body">
+            <a href="https://about.fb.com/news/2025/07/ending-political-electoral-and-social-issue-advertising-in-the-eu/" target="_blank">Meta stoppade all politisk annonsering</a> på Facebook och Instagram i EU den 6 oktober 2025 med hänvisning till att EU:s <a href="https://mediemyndigheten.se/europeiska-regleringar/ttpa-eus-forordning-om-politisk-reklam/" target="_blank">TTPA-förordning</a> är för komplex att efterleva. Konsekvensen är att även Valmyndighetens neutrala väljarinformation klassas som politisk reklam och blockeras. Kanslichefen Anna Nyqvist beskriver det som ett <strong>allvarligt demokratiproblem</strong>: myndigheten blir helt beroende av organisk spridning — precis det informationsvakuum påverkansaktörer kan exploatera. <a href="https://www.nordiskpost.com/2025/12/02/sweden-election-authority-blocked-meta/" target="_blank">Nordisk Post</a> · <a href="https://www.altinget.se/artikel/eus-nya-annonsregler-kan-skada-samhallsdebatten" target="_blank">Altinget om EU-annonsreglerna</a> · <a href="https://www.tillit-kommunikation.se/l/stopp-for-politisk-annonsering-kan-gora-valet-2026-mer-sarbart-for-desinformation/" target="_blank">Tillit Kommunikation</a>
+          </div>
+          <span class="vc-tag">Omedelbar risk</span>
+        </div>
+        <div class="vuln-card reveal rd2">
+          <div class="vc-num">Sårbarhet 02</div>
+          <div class="vc-title">Ojämn faktagranskningskapacitet i regionala medier</div>
+          <div class="vc-body">
+            <a href="https://fojo.se/nytt-projekt-ska-stotta-redaktioner-mot-desinformation-infor-valet/" target="_blank">Medieinstitutet Fojo lanserade i februari 2026 <strong>Valkollen 2026</strong></a> (fyra miljoner kronor) för att stärka redaktioners motståndskraft — med särskilt fokus på AI-genererat innehåll och stöd till mindre redaktioner. <a href="https://mediemyndigheten.se/rapporter-och-analyser/medieutblick/" target="_blank">Mediemyndighetens <em>Medieutblick 2025</em></a> identifierar resursojämlikheten som en strukturell sårbarhet: lokala medier når väljare som nationella medier inte når, men saknar kapacitet att i realtid bemöta sofistikerade desinformationskampanjer. Mediemyndigheten fick september 2025 ytterligare 2 mkr för fördjupat MIK-arbete med AI-fokus, och i april 2026 ett nytt uppdrag som del av den nationella lässtrategin 2026–2031.
+          </div>
+          <span class="vc-tag">Strukturell risk</span>
+        </div>
+        <div class="vuln-card reveal rd3">
+          <div class="vc-num">Sårbarhet 03</div>
+          <div class="vc-title">Lagstiftningsgapet kvarstår</div>
+          <div class="vc-body">
+            <a href="https://www.socialdemokraterna.se/nyheter/nyheter/2025-08-06-s-krav-skydda-valet-2026-mot-rysk-paverkan" target="_blank">Socialdemokraterna krävde i augusti 2025</a> fyra konkreta åtgärder: skydd av valets infrastruktur, obligatorisk transparens kring utländsk partifinansering, stärkt mandat för MPF och MSB samt förbud mot ryska ekonomiska bidrag till partier. <strong>Regeringen Kristersson har ännu inte presenterat lagstiftning på dessa punkter.</strong> <a href="https://riksdagsmonitor.com/news/2026-04-19-deep-inspection-russia-cyber-threat-defence-ukraina-en.html" target="_blank">Riksdagsmonitors analys (april 2026)</a> av prop. 2025/26:231 — Sveriges medverkan i Ukrainas aggressionsdomstol — pekar på att exponeringen kan eskalera informationslandskapet och göra Sverige till ett mer prioriterat FIMI-mål. Se även <a href="https://www.dn.se/debatt/rysk-paverkan-hotar-svenska-valet-sa-rustar-vi/" target="_blank">DN Debatt (5 feb. 2026)</a>.
+          </div>
+          <span class="vc-tag">Politisk risk</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 05: AI -->
+<section id="ai-section">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">05 — AI som operativ multiplikator</div>
+      <h2 class="sec-title">Fyra AI-vektorer<br>i realtidsoperationer</h2>
+      <p class="sec-lead"><a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank" style="color:var(--signal);text-decoration:none;border-bottom:1px solid var(--signal-dim);">EEAS FIMI-rapporten 2026</a> konstaterar att AI-verktyg inte längre är experimentella utan rutinmässigt inbäddade i ryska och kinesiska operationer. AI-relaterade TTP:er ökade med 259% jämfört med 2024.</p>
+    </div>
+    <div class="ai-grid">
+      <div class="ai-card reveal rd1">
+        <span class="ai-icon">⚡</span>
+        <div class="ai-title">Syntetiskt innehåll i industriell skala</div>
+        <div class="ai-body">
+          Deepfakevideo, AI-genererade röster och fotorealistiska bilder produceras i en hastighet som mänskliga faktakontrollanter inte kan matcha. Runt en halv miljon deepfake-videor delades på sociala medier under 2023 — en siffra som eskalerat kraftigt 2024–2025. <a href="https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2025)779259" target="_blank">EPRS:s rapport <em>Information Manipulation in the Age of Generative AI</em></a> (dec. 2025) konstaterar att AI Act, DSA och TTPA ännu inte är anpassade till valspecifika deepfake-scenarier. <a href="https://fojo.se/nytt-projekt-ska-stotta-redaktioner-mot-desinformation-infor-valet/" target="_blank">Valkollen 2026</a> lägger särskilt fokus på att identifiera AI-genererat innehåll.
+        </div>
+      </div>
+      <div class="ai-card reveal rd2">
+        <span class="ai-icon">🎯</span>
+        <div class="ai-title">Hyperriktad mikrotargeting</div>
+        <div class="ai-body">
+          AI möjliggör kommunikation anpassad till enskilda individers digitala fotavtryck: politiska preferenser, geografisk identitet och ekonomiska orosmoment. Kombinerat med läckta eller köpta datamängder kan kampanjer riktas mot specifika väljargrupper med <strong>en precision som traditionell masskommunikation aldrig uppnår</strong>. EEAS dokumenterar ~43 000 observerbara signaler spårade på 19 plattformar, kopplade till 540 incidenter under 2025. <a href="https://forskning.se/2026/04/21/sa-kan-ai-forma-valet-utan-att-vi-marker-det/" target="_blank">Mikael Wiberg (Umeå univ., april 2026)</a> identifierar tre demokratihot: förstärkning av konflikter, manipulerad dagordningssättning och sannings-/lögnsamblandning.
+        </div>
+      </div>
+      <div class="ai-card reveal rd3">
+        <span class="ai-icon">🔄</span>
+        <div class="ai-title">Adaptiv desinformation</div>
+        <div class="ai-body">
+          Algoritmstyrda system anpassar i realtid narrativ baserat på mottagning — förstärker det som sprids organiskt och modifierar det som möter motstånd. <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS konstaterar</a> att den operativa logiken 2025 har förflyttats: frågan är inte längre <em>"ser detta falskt ut?"</em> utan <em>"kan vi detektera koordinerat beteende innan narrativet skalas upp?"</em> Det gör traditionell reaktiv faktakontroll strukturellt otillräcklig som ensam motåtgärd.
+        </div>
+      </div>
+      <div class="ai-card reveal rd4">
+        <span class="ai-icon">🧠</span>
+        <div class="ai-title">LLM-grooming</div>
+        <div class="ai-body">
+          Pro-ryska aktörer injicerar narrativ i AI-systems träningsdata och sökkällor — specifikt anpassat till nordiska språk. <a href="https://kallkritikbyran.se/sa-infiltrerar-ryska-propagandasidor-ai-chattbottar-i-norden/" target="_blank">Källkritikbyrån/NordisHub (maj 2025)</a> visade att ChatGPT, Gemini och Copilot använde artiklar från det ryska Pravda-nätverket vid promptning på svenska och norska. Väljare som informerar sig via AI-verktyg inför valet riskerar att serveras påverkat innehåll utan att vara medvetna om det. <a href="https://mediemyndigheten.se/rapporter-och-analyser/AI-och-desinformation-pa-sociala-medier/" target="_blank">Mediemyndigheten identifierar kunskapsluckor</a> om AI-desinformation som en institutionell sårbarhet i sig.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 06: MOTÅTGÄRDER -->
+<section id="motåtgärder" class="bg-deep">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">06 — Europeiska motåtgärder</div>
+      <h2 class="sec-title">Ambitionen är hög —<br>genomförandegapet kvarstår</h2>
+    </div>
+    <div class="body-text reveal rd1">
+      <p>EU:s regelverk har stärkts avsevärt sedan 2022 genom <a href="https://commission.europa.eu/topics/countering-information-manipulation_en" target="_blank">Digital Services Act</a>, <a href="https://mediemyndigheten.se/europeiska-regleringar/ttpa-eus-forordning-om-politisk-reklam/" target="_blank">TTPA-förordningen om politisk reklam</a> och <a href="https://digital-strategy.ec.europa.eu/en/policies/european-digital-media-observatory" target="_blank">EDMO</a> med 15 nationella och transnationella hubbar. Koden för praxis mot desinformation integrerades formellt i DSA med bindande kraft från juli 2025.</p>
+      <p><strong>FIMI som supply chain-problem, inte innehållsproblem.</strong> <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS:s 4:e årsrapport</a> introducerar ett paradigmskifte: FIMI bör förstås som ett infrastrukturproblem snarare än ett innehållsproblem. Rapporten presenterar en <strong>Deterrence Playbook</strong> som reframer utmaningen: genom att identifiera och störa de finansiella, tekniska och organisatoriska möjliggörare bakom FIMI-operationer — inte bara moderera enskilda inlägg — kan kostnaden för att driva operationer höjas. Det är en operationell logik som MPF och SÄPO ännu saknar tydligt mandat att tillämpa mot kommersiella plattformars algoritmiska infrastruktur.</p>
+      <p><strong>FIMI Explorer</strong> — EEAS interaktiva kartläggningsverktyg på <a href="https://euvsdisinfo.eu/fimi-explorer" target="_blank">euvsdisinfo.eu/fimi-explorer</a> — visualiserar ~3 000 aktiva kanaler i det globala FIMI-ekosystemet, varav <strong>90% tillhör det dolda nätverket</strong> av kanaler med dold koppling till statliga aktörer. <a href="https://www.stopfake.org/en/what-s-new-in-the-fimi-galaxy/" target="_blank">StopFake om FIMI-galaxen.</a></p>
+      <p><a href="https://www.iss.europa.eu/publications/briefs/smoke-and-mirrors-building-eu-resilience-against-manipulation-through-cognitive" target="_blank"><strong>EU ISS (<em>Smoke and Mirrors</em>, okt. 2025)</strong></a> identifierar att FIMI kräver ett kognitivt säkerhetsperspektiv som sträcker sig bortom traditionella motåtgärder. <a href="https://www.fhs.se/en/swedish-defence-university/stories/2026-04-10-he-researches-cognitive-warfare-and-diplomacy.html" target="_blank">Försvarshögskolan (FHS)</a> bedriver forskning om kognitivt krig och diplomati specifikt inriktad på informationens effekter på beslutsprocesser i krislägen.</p>
+      <p><strong>Metas regelefterlevnadsparadox:</strong> EU:s regler, avsedda att skydda demokratin mot utländsk påverkan, ledde till att Meta stängde ned en kanal som Valmyndigheten använde för neutral väljarinformation — medan aktörer utan regelefterlevnadskrav, ryska trollfabriker och kriminella nätverk, <a href="https://about.fb.com/news/2025/07/ending-political-electoral-and-social-issue-advertising-in-the-eu/" target="_blank">fortsätter opåverkade.</a> <a href="https://www.theguardian.com/world/2025/jan/08/eu-commission-urged-to-act-elon-musk-interference-elections" target="_blank">Europeiska parlamentariker</a> uppmanar kommissionen att agera snabbare mot plattformsägares personliga politiska aktivism — DSA:s efterlevnad har hittills varit <em>"för långsam".</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 07: BEDÖMNING -->
+<section id="assessment">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">07 — Analytisk bedömning</div>
+      <h2 class="sec-title">Bedömning</h2>
+      <p class="sec-lead">Riktar sig ryska påverkansoperationer aktivt mot det svenska riksdagsvalet september 2026, och är den svenska institutionella motståndskraften tillräcklig?</p>
+    </div>
+    <div class="assessment-layout">
+      <div class="conf-ring-wrap reveal">
+        <div style="text-align:center;margin-bottom:16px;"><div class="verdict-badge">Troligt</div></div>
+        <div class="conf-ring">
+          <svg viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(26,32,56,0.9)" stroke-width="9"/>
+            <circle cx="80" cy="80" r="70" fill="none" stroke="url(#cg)" stroke-width="9"
+              stroke-dasharray="439.8" stroke-dashoffset="109.9" stroke-linecap="round" id="conf-arc"/>
+            <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#d4a843"/><stop offset="100%" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+          <div class="cr-text">
+            <div class="cr-pct">75%</div>
+            <div class="cr-lbl">Konfidens</div>
+          </div>
+        </div>
+        <div style="padding:18px;border:1px solid var(--border);background:var(--panel);">
+          <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.28em;color:var(--amber);text-transform:uppercase;margin-bottom:8px;">Indikatorer att bevaka</div>
+          <div style="font-size:12px;color:var(--mist);font-weight:300;line-height:1.65;">Koordinerade kampanjer kopplade till <strong style="color:var(--amber);">migration, NATO-trovärdighet och energipriser</strong> under juni–september 2026.</div>
+        </div>
+      </div>
+      <div class="assess-body reveal rd2">
+        <p>Ryska påverkansoperationer bedöms rikta sig aktivt mot det svenska riksdagsvalet med målet att öka polariseringen och gynna kandidater och partier vars utrikespolitiska linje är förenlig med <strong>ryska strategiska intressen</strong>. Det mest sannolika scenariot är inte en enskild dramatisk operation utan en ackumulerad kampanj av <strong>narrativinjicering, algoritmisk amplifiering, kanalmigrering och LLM-grooming</strong> — svår att attribuera och ännu svårare att bemöta i realtid.</p>
+        <p><a href="https://mpf.se/om-oss/nyheter/2025/2025-11-21-god-motstandskraft-mot-informationspaverkan-infor-valet" target="_blank">MPF bekräftar</a> att ryska aktörer arbetar systematiskt mot europeiska val med stora resurser. <a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS FIMI-rapporten 2026</a> konstaterar att samma operationsinfrastruktur som riktades mot tyska och rumänska val nu varmar upp inför valrörelser 2026 — med Sverige namngivet som ett land vars kommande val kan möta liknande mönster. <a href="https://www.forsvarsmakten.se/globalassets/must-arsoversikt-2025.pdf" target="_blank">MUST</a> konstaterar att NATO-inträdet gjort landet till en mer prioriterad måltavla.</p>
+        <p>Det inhemska politiska klimatet är gynnsamt för påverkansoperationer. Migrations- och trygghetsfrågor dominerar debatten och skapar polarisering längs de exakta skiljelinjer som ryska aktörer historiskt utnyttjat. <a href="https://medieakademin.se/fortroendebarometern-2026-nato-rasar-kungahuset-nar-rekordnivaer-och-framtidstron-okar/" target="_blank">Förtroendebarometern 2026</a> bekräftar att NATO-förtroendet faller kraftigt, partiförtroendet är historiskt lågt och medborgare uppfattar desinformation som mer inflytelserik än etablerade institutioner — en indikation på att priming-fasen i den trefasiga operationslogiken delvis redan är genomförd.</p>
+        <div class="uncert-block">
+          <div class="uncert-lbl">⬤ Osäkerhetsfaktor</div>
+          <div class="uncert-text"><a href="https://mpf.se/om-oss/nyheter/2025/2025-11-21-god-motstandskraft-mot-informationspaverkan-infor-valet" target="_blank">MPF:s bedömning</a> att Sverige för närvarande inte är en <em>huvudmåltavla</em> är den viktigaste motvägande faktorn. Sveriges relativt höga mediekritiska förmåga och historiskt starka institutionsförtroende dämpar effektiviteten av desinformationskampanjer jämfört med mer polariserade europeiska länder. Den avgörande osäkerheten är huruvida säkerhetspolitiska händelser under valkampanjen — Ukrainafredsprocessen, Grönlandskrisen och NATO-spänningarna — skapar ett informationslandskap med strukturellt bättre betingelser för påverkansaktörer. Se <a href="https://www.idea.int/publications/catalogue/protecting-electoral-integrity-case-sweden" target="_blank">International IDEA (maj 2026)</a>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 08: INDIKATORER -->
+<section id="indicators" class="bg-deep">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">08 — Indikatorer att bevaka</div>
+      <h2 class="sec-title">Fyra trösklar<br>att följa</h2>
+    </div>
+    <div class="ind-grid">
+      <div class="ind-card reveal rd1">
+        <div class="ind-status"><div class="status-dot sd-amber"></div><div class="ind-slbl">Aktiv bevakning</div></div>
+        <div class="ind-title">Koordinerade narrativkampanjer</div>
+        <div class="ind-body">Om <a href="https://mpf.se/kunskap-och-stod/temabibliotek/valpaverkan/informationspaverkan-och-val" target="_blank">MPF</a> eller <a href="https://www.svt.se/nyheter/inrikes/sapo-sakerhetshotet-fran-ryssland-okar" target="_blank">SÄPO</a> identifierar koordinerade kampanjer kopplade till <strong>migration, NATO-trovärdighet och energipriser</strong> under juni–september 2026 är det den tydligaste indikatorn på en aktiv valstörningskampanj. <a href="https://foretagsportalen.org/2025/10/ryska-paverkanskampanjer-mot-sverige-okar-infor-valet-2026/" target="_blank">Riksdagsmonitor följer löpande.</a></div>
+      </div>
+      <div class="ind-card reveal rd2">
+        <div class="ind-status"><div class="status-dot sd-signal"></div><div class="ind-slbl">Teknologisk tröskel</div></div>
+        <div class="ind-title">AI-genererat innehåll i valkampanjen</div>
+        <div class="ind-body">Om AI-genererat innehåll kopplas till koordinerade konton och identifieras av <a href="https://fojo.se/nytt-projekt-ska-stotta-redaktioner-mot-desinformation-infor-valet/" target="_blank">Fojo Valkollen</a> eller <a href="https://digital-strategy.ec.europa.eu/en/policies/european-digital-media-observatory" target="_blank">EDMO:s faktakontrollnätverk</a> under valkampanjen är det ett tecken på att LLM-grooming och syntetisk innehållsproduktion operationaliserats mot svenska väljare.</div>
+      </div>
+      <div class="ind-card reveal rd3">
+        <div class="ind-status"><div class="status-dot sd-crimson"></div><div class="ind-slbl">Kritisk tröskel</div></div>
+        <div class="ind-title">Lagstiftningsgapet</div>
+        <div class="ind-body">Om regeringen inte presenterar lagstiftning om <strong>utländsk partifinansering och stärkt MPF-mandat</strong> före sommaren 2026 kvarstår gapet som en exploaterbar sårbarhet. <a href="https://www.socialdemokraterna.se/nyheter/nyheter/2025-08-06-s-krav-skydda-valet-2026-mot-rysk-paverkan" target="_blank">S krav</a> · <a href="https://www.regeringen.se/regeringens-politik/valpaverkan/" target="_blank">Regeringen.se</a></div>
+      </div>
+      <div class="ind-card reveal rd4">
+        <div class="ind-status"><div class="status-dot sd-green"></div><div class="ind-slbl">Plattformsreglering</div></div>
+        <div class="ind-title">DSA-undersökningar mot X</div>
+        <div class="ind-body">Om X:s pågående <a href="https://eucrim.eu/news/eu-fines-x-120-million-in-first-dsa-non-compliance-decision/" target="_blank">DSA-undersökningar</a> leder till ytterligare böter eller operativa begränsningar under valrörelsen kan det påverka plattformens funktion som amplifierings- och distributionsinfrastruktur för FIMI-operationer. <a href="https://www.theguardian.com/technology/2025/dec/05/elon-musk-x-fined-eu-first-clash-under-new-digital-laws" target="_blank">The Guardian om DSA-böterna.</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 09: SOURCES -->
+<section id="sources">
+  <div class="container">
+    <div class="sec-hdr reveal">
+      <div class="sec-num">09 — Källförteckning</div>
+      <h2 class="sec-title">Källor</h2>
+    </div>
+    <div class="sources-grid reveal">
+      <div class="src-group">
+        <div class="src-group-title">Svenska myndigheter</div>
+        <ul class="src-list">
+          <li><a href="https://mpf.se/om-oss/nyheter/2025/2025-11-21-god-motstandskraft-mot-informationspaverkan-infor-valet" target="_blank">MPF. God motståndskraft mot informationspåverkan inför valet. Nov. 2025.</a></li>
+          <li><a href="https://mpf.se/valet-2026" target="_blank">MPF. Lägesbild inför valet 2026.</a></li>
+          <li><a href="https://mpf.se/kunskap-och-stod/temabibliotek/valpaverkan/informationspaverkan-och-val" target="_blank">MPF. Temabibliotek: Informationspåverkan och val.</a></li>
+          <li><a href="https://mpf.se/om-oss/nyheter/2026/2026-02-20-goda-resultat-i-mpfs-arsredovisning" target="_blank">MPF. Årsredovisning 2026.</a></li>
+          <li><a href="https://www.forsvarsmakten.se/globalassets/must-arsoversikt-2025.pdf" target="_blank">MUST. Årsöversikt 2025.</a></li>
+          <li><a href="https://www.regeringen.se/regeringens-politik/valpaverkan/" target="_blank">Regeringen.se. Skydda valen 2026 mot otillbörlig påverkan. Feb. 2026.</a></li>
+          <li><a href="https://www.regeringen.se/pressmeddelanden/2026/02/statsministern-bjod-in-till-partiledarmote-om-valpaverkan/" target="_blank">Regeringen.se. Partiledarmöte om valpåverkan. Feb. 2026.</a></li>
+          <li><a href="https://mediemyndigheten.se/rapporter-och-analyser/medieutblick/" target="_blank">Mediemyndigheten. Medieutblick 2025.</a></li>
+          <li><a href="https://mediemyndigheten.se/rapporter-och-analyser/AI-och-desinformation-pa-sociala-medier/" target="_blank">Mediemyndigheten. AI och desinformation på sociala medier. 2026.</a></li>
+          <li><a href="https://mediemyndigheten.se/europeiska-regleringar/ttpa-eus-forordning-om-politisk-reklam/" target="_blank">Mediemyndigheten. TTPA-förordningen om politisk reklam.</a></li>
+          <li><a href="https://www.val.se/servicelankar/servicelankar/pressrum/nyheter" target="_blank">Valmyndigheten. Pressrum: Meta-blockad och val 2026.</a></li>
+        </ul>
+      </div>
+      <div class="src-group">
+        <div class="src-group-title">EU-institutioner &amp; Internationella org.</div>
+        <ul class="src-list">
+          <li><a href="https://www.eeas.europa.eu/eeas/4th-eeas-annual-report-foreign-information-manipulation-and-interference-threats_en" target="_blank">EEAS. 4th Annual FIMI Report: Dismantling the House of Cards. Mars 2026.</a></li>
+          <li><a href="https://www.eeas.europa.eu/eeas/3rd-eeas-report-foreign-information-manipulation-and-interference-threats-0_en" target="_blank">EEAS. 3rd FIMI Report. Mars 2025.</a></li>
+          <li><a href="https://www.eeas.europa.eu/eeas/dismantling-infrastructure-foreign-information-manipulation-and-interference-house-cards_en" target="_blank">EEAS. FIMI-konferensen Bryssel, mars 2026. Kallas-citatet.</a></li>
+          <li><a href="https://euvsdisinfo.eu/fimi-explorer" target="_blank">EEAS. FIMI Explorer — interaktivt kartläggningsverktyg.</a></li>
+          <li><a href="https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2025)779259" target="_blank">EPRS. Information Manipulation in the Age of Generative AI. Dec. 2025.</a></li>
+          <li><a href="https://ec.europa.eu/commission/presscorner/api/files/document/print/en/ip_25_2934/IP_25_2934_EN.pdf" target="_blank">EU-kommissionen. DSA-böter mot X: €120 miljoner. Dec. 2025.</a></li>
+          <li><a href="https://commission.europa.eu/news-and-media/news/new-eu-rules-political-advertising-come-effect-2025-10-10_en" target="_blank">EU-kommissionen. TTPA träder i kraft. Okt. 2025.</a></li>
+          <li><a href="https://digital-strategy.ec.europa.eu/en/policies/european-digital-media-observatory" target="_blank">EU-kommissionen. European Digital Media Observatory (EDMO).</a></li>
+          <li><a href="https://www.idea.int/publications/catalogue/protecting-electoral-integrity-case-sweden" target="_blank">International IDEA. Protecting Electoral Integrity: Sweden. Maj 2026.</a></li>
+          <li><a href="https://www.hybridcoe.fi/wp-content/uploads/2024/05/20240530-Hybrid-CoE-Working-Paper-32-Russias-hybrid-threat-tactics-WEB.pdf" target="_blank">Hybrid CoE. Working Paper 32: Russia's Hybrid Threat Tactics. Maj 2024.</a></li>
+          <li><a href="https://www.iss.europa.eu/publications/briefs/smoke-and-mirrors-building-eu-resilience-against-manipulation-through-cognitive" target="_blank">EU ISS. Smoke and Mirrors: Cognitive Security. Okt. 2025.</a></li>
+        </ul>
+      </div>
+      <div class="src-group">
+        <div class="src-group-title">Forskning, Tankesmedjor &amp; Medier</div>
+        <ul class="src-list">
+          <li><a href="https://thesoufancenter.org/research/priming-destabilizing-coercing-russian-hybrid-tactics-in-europe-2022-2025/" target="_blank">Soufan Center. Priming, Destabilizing, Coercing. Mars 2026.</a></li>
+          <li><a href="https://carnegieendowment.org/research/2024/11/russia-gray-zone-aggression-baltic-nordic" target="_blank">Carnegie. Death by a Thousand Paper Cuts. Nov. 2024.</a></li>
+          <li><a href="https://carnegieendowment.org/europe/strategic-europe/2025/01/taking-the-pulse-is-elon-musk-meddling-in-european-politics" target="_blank">Carnegie. Is Elon Musk Meddling in European Politics? Jan. 2025.</a></li>
+          <li><a href="https://www.csis.org/analysis/russias-shadow-war-against-the-west" target="_blank">CSIS. Russia's Shadow War Against the West. Mars 2025.</a></li>
+          <li><a href="https://cepa.org/comprehensive-reports/war-without-end-deterring-russias-shadow-war/" target="_blank">CEPA. War Without End: Deterring Russia's Shadow War. Mars 2026.</a></li>
+          <li><a href="https://frivarld.se/rapporter/tracking-the-russian-hybrid-warfare-cases-from-nordic-baltic-countries/" target="_blank">Frivärld. Tracking Russian Hybrid Warfare: Nordic-Baltic. Maj 2024.</a></li>
+          <li><a href="https://algorithmwatch.org/en/the-musk-effect/" target="_blank">AlgorithmWatch / DFRLab. The Musk Effect. Feb. 2025.</a></li>
+          <li><a href="https://globalwitness.org/en/press-releases/x-and-tiktok-algorithms-push-pro-afd-content-to-non-partisan-german-users-new-analysis-reveals/" target="_blank">Global Witness. X och TikTok push:ar pro-AfD-innehåll. Feb. 2025.</a></li>
+          <li><a href="https://arxiv.org/abs/2503.02888" target="_blank">Prama et al. Political Biases on X before German Election. arXiv 2025.</a></li>
+          <li><a href="https://techpolicy.press/new-research-points-to-possible-algorithmic-bias-on-x" target="_blank">QUT. X:s algoritm ändrades juli 2024. Nov. 2024.</a></li>
+          <li><a href="https://www.ox.ac.uk/news/2025-05-22-expert-comment-which-urgent-tech-lessons-must-eu-take-romania-s-election" target="_blank">Oxford / Roxana Radu. Tech Lessons from Romania's Election. Maj 2025.</a></li>
+          <li><a href="https://www.disinfo.eu/doppelganger-hub/" target="_blank">EU DisinfoLab. Doppelgänger Hub.</a></li>
+          <li><a href="https://www.fhs.se/en/swedish-defence-university/stories/2026-04-10-he-researches-cognitive-warfare-and-diplomacy.html" target="_blank">FHS. Cognitive Warfare and Diplomacy research. April 2026.</a></li>
+          <li><a href="https://medieakademin.se/fortroendebarometern-2026-nato-rasar-kungahuset-nar-rekordnivaer-och-framtidstron-okar/" target="_blank">Medieakademin. Förtroendebarometern 2026. Mars 2026.</a></li>
+          <li><a href="https://kallkritikbyran.se/sa-infiltrerar-ryska-propagandasidor-ai-chattbottar-i-norden/" target="_blank">Källkritikbyrån/NordisHub. Ryska propagandasidor infiltrerar AI-chattbotar. Maj 2025.</a></li>
+          <li><a href="https://neweasterneurope.eu/2025/08/15/hybrid-storm-over-the-north-russias-grey-zone-offensive-in-the-nordic-region/" target="_blank">New Eastern Europe. Hybrid Storm over the North. Aug. 2025.</a></li>
+          <li><a href="https://www.svt.se/nyheter/inrikes/60-hybridattacker-mot-europa-sparen-pekar-mot-ryssland" target="_blank">SVT/EBU. 60 hybridattacker mot Europa. Mars 2025.</a></li>
+          <li><a href="https://www.svt.se/nyheter/snabbkollen/inte-immuna-mot-paverkanshot" target="_blank">SVT. Inte immuna mot påverkanshot. Feb. 2026.</a></li>
+          <li><a href="https://www.svt.se/nyheter/inrikes/must-allvarligt-och-konkret-ryskt-hot-mot-nato-och-sverige" target="_blank">SVT. MUST: Allvarligt och konkret ryskt hot. 2026.</a></li>
+          <li><a href="https://www.svt.se/nyheter/inrikes/sapo-sakerhetshotet-fran-ryssland-okar" target="_blank">SVT. SÄPO: Ryssland mer riskbenäget. 2026.</a></li>
+          <li><a href="https://news.sky.com/story/how-sky-news-investigated-xs-algorithm-for-political-bias-13463916" target="_blank">Sky News. X:s algoritm för politisk bias. Nov. 2025.</a></li>
+          <li><a href="https://www.euronews.com/my-europe/2025/01/22/russias-disinformation-operations-resurface-ahead-of-german-election" target="_blank">Euronews. Doppelgänger inför tyska valet. Jan. 2025.</a></li>
+          <li><a href="https://www.bbc.com/news/articles/cr7errxp5jmo" target="_blank">BBC. Musk intervjuar Alice Weidel. Jan. 2025.</a></li>
+          <li><a href="https://www.aljazeera.com/news/2025/1/2/germany-accuses-musk-of-election-meddling-over-afd-support-what-we-know" target="_blank">Al Jazeera. Germany accuses Musk of election meddling. Jan. 2025.</a></li>
+          <li><a href="https://www.theguardian.com/technology/2025/dec/05/elon-musk-x-fined-eu-first-clash-under-new-digital-laws" target="_blank">The Guardian. X fined €120m under DSA. Dec. 2025.</a></li>
+          <li><a href="https://www.theguardian.com/world/2025/jan/08/eu-commission-urged-to-act-elon-musk-interference-elections" target="_blank">The Guardian. EU urged to act on Musk interference. Jan. 2025.</a></li>
+          <li><a href="https://www.dn.se/debatt/rysk-paverkan-hotar-svenska-valet-sa-rustar-vi/" target="_blank">DN Debatt. Rysk påverkan hotar svenska valet. Feb. 2026.</a></li>
+          <li><a href="https://www.altinget.se/sakerhet/artikel/saa-kan-ryssland-vilja-paaverka-svenska-riksdagsvalet" target="_blank">Altinget. Så kan Ryssland påverka riksdagsvalet. Jan. 2026.</a></li>
+          <li><a href="https://forskning.se/2026/04/21/sa-kan-ai-forma-valet-utan-att-vi-marker-det/" target="_blank">Forskning.se / Wiberg. Så kan AI forma valet. April 2026.</a></li>
+          <li><a href="https://fojo.se/nytt-projekt-ska-stotta-redaktioner-mot-desinformation-infor-valet/" target="_blank">Fojo. Valkollen 2026. Feb. 2026.</a></li>
+          <li><a href="https://www.socialdemokraterna.se/nyheter/nyheter/2025-08-06-s-krav-skydda-valet-2026-mot-rysk-paverkan" target="_blank">Socialdemokraterna. S krav: Skydda valet 2026. Aug. 2025.</a></li>
+          <li><a href="https://riksdagsmonitor.com/news/2026-04-19-deep-inspection-russia-cyber-threat-defence-ukraina-en.html" target="_blank">Riksdagsmonitor. Sweden Joins Ukraine Aggression Tribunal. April 2026.</a></li>
+          <li><a href="https://www.justice.gov/archives/opa/pr/justice-department-disrupts-covert-russian-government-sponsored-foreign-malign-influence" target="_blank">US DOJ. Disrupts Doppelgänger. Sep. 2024.</a></li>
+          <li><a href="https://veckobrevskartan.github.io/visualisering-FIMI-Dismantling-the-FIMI-House-of-cards-mars-2026/" target="_blank">Veckobrevskartan. FIMI Dismantling the House of Cards (visualisering).</a></li>
+          <li><a href="https://veckobrevskartan.github.io/Hybridh-ndelser-TSC/" target="_blank">Veckobrevskartan. Hybridhändelser TSC (visualisering).</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <img src="./inblick-logo.png" alt="Svensk OSINT · INBLICK" style="height:52px;width:auto;object-fit:contain;opacity:0.75;">
+    <div>
+      <div class="footer-brand">Svensk OSINT</div>
+      <div class="footer-sub">Analyskatalog INBLICK · Frivilligdriven</div>
+    </div>
+  </div>
+  <div class="footer-note">
+    Kapitel: Informationskrigföring &amp; Påverkansoperationer<br>
+    Bedömning: TROLIGT (75%) · Riksdagsvalet 13 september 2026<br>
+    Öppna källor · Inga myndighetskällor utan public domain-status
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;
+  document.getElementById('progress-bar').style.width=pct+'%';
+});
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:0.07,rootMargin:'0px 0px -36px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+function calcDays(){const d=new Date('2026-09-13'),n=new Date();return Math.max(0,Math.ceil((d-n)/(86400000)));}
+const days=calcDays();
+['countdown-days','hero-countdown'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=days;});
+const statCells=document.querySelectorAll('.stat-val[data-count]');
+const sObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){statCells.forEach(c=>{const t=parseInt(c.dataset.count);let v=0;const step=Math.max(1,Math.ceil(t/35));const timer=setInterval(()=>{v=Math.min(v+step,t);c.textContent=v+'+';if(v>=t)clearInterval(timer);},35);});sObs.disconnect();}});},{threshold:0.5});
+const strip=document.querySelector('.stats-strip');if(strip)sObs.observe(strip);
+const arc=document.getElementById('conf-arc');
+if(arc){arc.style.strokeDashoffset='439.8';const aObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){arc.style.transition='stroke-dashoffset 2.2s cubic-bezier(.4,0,.2,1)';arc.style.strokeDashoffset='109.9';aObs.disconnect();}});},{threshold:0.5});aObs.observe(arc);}
+</script>
+</body>
+</html>
