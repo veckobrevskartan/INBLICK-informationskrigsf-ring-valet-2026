@@ -64,15 +64,16 @@ h1.hero-title em{font-style:italic;color:var(--amber);}
 .scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--amber),transparent);animation:scrollPulse 1.6s ease-in-out infinite;}
 
 /* INBLICK INLAGA */
-#inlaga{background:var(--deep);border-bottom:1px solid var(--border);padding:32px 0;}
-.inlaga-inner{max-width:1140px;margin:0 auto;padding:0 48px;display:flex;align-items:center;gap:36px;}
-.inlaga-icon{flex-shrink:0;width:52px;height:52px;}
-.inlaga-badge{flex-shrink:0;padding:14px 20px;border:1px solid var(--amber-dim);text-align:center;min-width:110px;}
-.inlaga-badge .ib-main{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--amber);}
-.inlaga-badge .ib-sub{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:0.25em;color:var(--mist);text-transform:uppercase;margin-top:3px;}
-.inlaga-sep{width:1px;height:48px;background:var(--border);flex-shrink:0;}
-.inlaga-text{font-size:14px;color:var(--mist);font-weight:300;line-height:1.7;max-width:720px;}
-.inlaga-text strong{color:var(--ice);font-weight:600;}
+#inlaga{background:var(--panel);border-top:1px solid var(--amber-dim);border-bottom:1px solid var(--border);padding:52px 0;position:relative;overflow:hidden;}
+#inlaga::before{content:'INBLICK';position:absolute;right:-20px;top:50%;transform:translateY(-50%);font-family:'Playfair Display',serif;font-size:clamp(80px,12vw,160px);font-weight:900;color:rgba(212,168,67,0.04);pointer-events:none;letter-spacing:-0.04em;line-height:1;}
+.inlaga-inner{max-width:1140px;margin:0 auto;padding:0 48px;display:flex;align-items:center;gap:48px;}
+.inlaga-icon{flex-shrink:0;width:64px;height:auto;object-fit:contain;opacity:0.92;}
+.inlaga-badge{flex-shrink:0;padding:20px 28px;border:1px solid var(--amber);text-align:center;min-width:130px;background:rgba(212,168,67,0.05);}
+.inlaga-badge .ib-main{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--amber);letter-spacing:0.04em;}
+.inlaga-badge .ib-sub{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--mist);text-transform:uppercase;margin-top:5px;}
+.inlaga-sep{width:1px;height:80px;background:var(--border);flex-shrink:0;}
+.inlaga-text{font-size:17px;color:var(--ice);font-weight:300;line-height:1.8;max-width:760px;opacity:0.88;}
+.inlaga-text strong{color:var(--amber);font-weight:600;font-size:18px;}
 
 /* STATS STRIP */
 .stats-strip{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border);overflow:hidden;margin-top:56px;}
@@ -414,15 +415,15 @@ footer{flex-direction:column;gap:20px;text-align:center;} .footer-note{text-alig
 <!-- INBLICK INLAGA -->
 <div id="inlaga">
   <div class="inlaga-inner">
-    <img src="./inblick-logo.png" alt="Svensk OSINT · INBLICK" class="inlaga-icon" style="width:52px;height:auto;object-fit:contain;flex-shrink:0;opacity:0.88;">
+    <img src="./inblick-logo.png" alt="Svensk OSINT · INBLICK" class="inlaga-icon">
     <div class="inlaga-badge">
       <div class="ib-main">INBLICK</div>
       <div class="ib-sub">Analyskatalog</div>
-      <div class="ib-sub" style="margin-top:3px">Svensk OSINT</div>
+      <div class="ib-sub" style="margin-top:4px;">Svensk OSINT</div>
     </div>
     <div class="inlaga-sep"></div>
     <div class="inlaga-text">
-      <strong>Denna analys ingår i Svensk OSINTs analyskatalog INBLICK</strong> — ett projekt drivet av två omvärldsbevakande medelålders män, med fokus på säkerhetspolitik, hybridhot och geopolitisk riskbedömning. Detta kapitel behandlar det informationskrigföringshot som riktas mot Sverige inför riksdagsvalet 2026, med utgångspunkt i öppna källor från svenska myndigheter, europeiska institutioner och oberoende forskning. Bedömningar presenteras med konfidensgrad och källhänvisningar. Analysen är inte en myndighetspublikation och speglar inte officiella svenska ståndpunkter.
+      <strong>Denna analys ingår i Svensk OSINTs analyskatalog INBLICK</strong> — ett projekt drivet av två omvärldsbevakande medelålders män, med fokus på säkerhetspolitik, hybridhot och geopolitisk riskbedömning. Detta kapitel behandlar det informationskrigföringshot som riktas mot Sverige inför riksdagsvalet 2026, med utgångspunkt i öppna källor från svenska myndigheter, europeiska institutioner och oberoende forskning. Bedömningar presenteras med konfidensgrad och källhänvisningar. <em style="color:var(--mist);font-style:italic;">Analysen är inte en myndighetspublikation och speglar inte officiella svenska ståndpunkter.</em>
     </div>
   </div>
 </div>
