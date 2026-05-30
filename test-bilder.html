@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { margin: 0; background: #08090f; color: white; font-family: sans-serif; }
+.test { width: 100%; height: 300px; position: relative; margin-bottom: 4px; }
+.test img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+.test-label { position: absolute; top: 10px; left: 10px; z-index: 2; background: rgba(0,0,0,0.7); padding: 4px 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="test">
+  <img src="./sverige-norden.png" onerror="this.nextElementSibling.textContent='❌ FEL: ' + this.src">
+  <div class="test-label">sverige-norden.png — om bilden syns fungerar det</div>
+</div>
+<div class="test">
+  <img src="./musk-ljus.png" onerror="this.nextElementSibling.textContent='❌ FEL: ' + this.src">
+  <div class="test-label">musk-ljus.png</div>
+</div>
+<div class="test">
+  <img src="./hero-city-network.jpg.png" onerror="this.nextElementSibling.textContent='❌ FEL: ' + this.src">
+  <div class="test-label">hero-city-network.jpg.png</div>
+</div>
+<div class="test">
+  <img src="./crowd-protest.jpg.png" onerror="this.nextElementSibling.textContent='❌ FEL: ' + this.src">
+  <div class="test-label">crowd-protest.jpg.png</div>
+</div>
+</body>
+</html>
